@@ -1,0 +1,26 @@
+package p3_server;
+import java.io.Serializable;
+import java.util.function.Consumer;
+
+public class server extends networkConnection {
+
+	private int port;
+	
+	public server(int port, Consumer<Serializable> callback) {
+		super(callback); 
+		this.port = port; //declare port
+	}
+	
+	public boolean isServer() { //checks if its a server
+		return true;
+	}
+	
+	public int getPort() {//return port number
+		return port;
+	}
+	
+	public String getIP() {
+		return null;//not needed in server
+	}
+	
+}

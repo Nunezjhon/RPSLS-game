@@ -1,0 +1,348 @@
+package p3_server;
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.util.ArrayList;
+
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.stage.Stage;
+
+
+
+/*
+	Jhon Nunez
+	University of Illinois
+	CS342 Software Design
+	Project 3: Rock, Paper, Scissors, Lizard, Spock
+*/
+
+public class p3_server extends Application{
+	
+	ServerSocket mysocket;
+	
+	Stage myStage; //primary stage
+	Scene host; //host scene
+	Button on,off,setPort;
+	TextField port;
+	Label clientNumber,p1Score,p2Score,p1Status,p2Status, winner;
+	int portNumber;
+	
+	private networkConnection connection;
+	
+	Integer numPlayers;
+	int plays; //amount of times played
+	
+	//keep track of client plays
+	ArrayList<String> clientPlays;
+	
+	
+	public static void main(String[] args) throws IOException {	
+		launch(args);	
+	}
+	
+	@Override
+	public void start(Stage primaryStage) throws Exception {
+		myStage = primaryStage;//create primary stage
+		primaryStage.setTitle("RPSLS Host By: Jhon Nunez");
+		//HOST SCENE---------------------------------------------------------------------------------------
+		Label gameTitle = new Label("Welcome to RPSLS! Enter Port Number!");
+		Label clients = new Label("Number of Clients");
+		clientNumber = new Label("0");
+		clientNumber.setFont(new Font("Arial", 12));
+		clientNumber.setStyle("-fx-font-weight: bold");
+		clientNumber.setTextFill(Color.DARKRED);
+		
+		Label p1 = new Label("Player 1 Score: ");
+		Label p2 = new Label("Player 2 Score: ");
+		p1Score = new Label("0");
+		p1Score.setStyle("-fx-font-weight: bold");
+		p2Score = new Label("0");
+		p2Score.setStyle("-fx-font-weight: bold");
+		Label playAgain = new Label("Play Again Status:");
+		Label p1Play = new Label("Player 1 Status: ");
+		Label p2Play = new Label("Player 2 Status: ");
+		p1Status = new Label("NA");
+		p1Status.setStyle("-fx-font-style: italic");
+		p2Status = new Label("NA");
+		p2Status.setStyle("-fx-font-style: italic");
+		Label winLabel = new Label("Winner");
+		
+		winner = new Label("NA");
+		winner.setStyle("-fx-font-weight: bold");
+		winner.setTextFill(Color.BLUE);
+		
+		gameTitle.setFont(new Font("Arial",15) );		
+		//background game image
+		BackgroundImage gameBI= new BackgroundImage(new Image("images/hostBack.jpg",400,400,false,true),      
+				BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,    
+				BackgroundSize.DEFAULT);
+		BorderPane gamePane = new BorderPane(); //create pane for card game
+		gamePane.setPadding(new Insets(50)); //add padding
+		gamePane.setBackground(new Background(gameBI));//set background image
+		
+		on = new Button("Turn On");
+		on.setMaxWidth(200);
+		off = new Button("Turn Off");
+		off.setMaxWidth(200);
+		setPort = new Button("Create");
+		setPort.setMaxWidth(200);
+		port = new TextField();
+		port.setPromptText("Enter Port Number to listen to");
+		port.setMaxWidth(200);	
+		port.setText("7777");
+		
+		HBox top = new HBox(gameTitle); //title
+		top.setAlignment(Pos.TOP_CENTER);
+		HBox play1 = new HBox(p1, p1Score); //player 1 score
+		HBox play2 = new HBox(p2, p2Score); //player 2 score
+		play1.setAlignment(Pos.CENTER);
+		play2.setAlignment(Pos.CENTER);
+		HBox stat1 = new HBox(p1Play,p1Status); //player 1 status
+		HBox stat2 = new HBox(p2Play,p2Status); //player 2 status
+		stat1.setAlignment(Pos.CENTER);
+		stat2.setAlignment(Pos.CENTER);
+		VBox center = new VBox(port,setPort, on, off,clients,clientNumber,play1,play2,playAgain,stat1,stat2,winLabel,winner);
+		center.setAlignment(Pos.TOP_CENTER);
+		
+		gamePane.setTop(top);
+		gamePane.setCenter(center);
+		
+		host = new Scene(gamePane, 400,400);//create scene for host
+		primaryStage.setScene(host); //set Scene
+		primaryStage.show(); //show Scene
+		
+		//DISABLE ON and OFF
+		on.setDisable(true);
+		off.setDisable(true);
+		
+		//SET UP CONNECTION
+		setPort.setOnAction(new EventHandler<ActionEvent>() {
+			public void handle(ActionEvent event){
+
+					portNumber = Integer.parseInt(port.getText());//get user input
+
+					try {
+						
+						connection = createServer(portNumber); //create server
+						connection.startConnection(); //start connection	
+						port.setDisable(true); //disable text field
+						setPort.setDisable(true); //disable port
+						off.setDisable(false); //enable off button
+						System.out.println("Started with port: "+connection.getPort()+" "+connection.isServer());
+						
+						
+					} catch (Exception e) {
+						
+						System.out.println("Nope! on server creation \n");
+						e.printStackTrace();
+					}
+			}
+		});
+
+		off.setOnAction(new EventHandler<ActionEvent>() {
+			public void handle(ActionEvent event){
+				/*
+				if (connection.getIP() == null) {//if there is NOT a connection 
+				  on.setDisable(false);
+				  off.setDisable(true);
+				}
+				else {//if there is a connection
+				*/
+					try {
+						connection.send("SERVER_STOP"); //send server stop message
+						connection.stopConnection(); //stop connection
+						on.setDisable(false);
+						off.setDisable(true);
+						
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				//}
+			}
+		});
+		
+		
+		on.setOnAction(new EventHandler<ActionEvent>() {
+			public void handle(ActionEvent event){
+				
+				on.setDisable(true);
+				off.setDisable(false);
+				
+				connection = createServer(portNumber); //create server
+				try {
+					connection.startConnection();//start connection
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+			}
+		});
+		  
+		
+	
+	}//end of start
+	
+	public void init() throws Exception{
+		numPlayers = 0;
+		plays = 0;
+		clientPlays = new ArrayList<String>();
+		//connection.startConnection(); //start connection
+	}
+	
+	public void stop() throws Exception{
+		//connection.stopConnection(); //stop connection
+	}
+
+	private server createServer(int port) {
+		return new server(port, data -> {
+			Platform.runLater(()-> {//runnable (funcitonal interface) run when needed
+				
+				System.out.println(data.toString());
+				if(data.toString() == "CLIENT") {	
+					numPlayers++; //add player per client connection
+					plays = 0; //decrease play counter: NOT PLAYS
+					clientNumber.setText(numPlayers.toString());
+					clientNumber.setTextFill(Color.FORESTGREEN);
+					
+					if (numPlayers == 2) {
+						clientPlays.add(1,"");//initialize
+						connection.increaseNum(); //increase num plays in net
+						try { connection.send("P2");} catch (Exception e) {e.printStackTrace();} //player 2
+						try { connection.send("TWO_PLAYERS");} catch (Exception e) {e.printStackTrace();}
+					}
+					else if (numPlayers == 1){
+						clientPlays.add(0,"");//initialize
+						connection.increaseNum(); //increase num plays in net
+						try { connection.send("P1");} catch (Exception e) {e.printStackTrace();} //player 1
+					}
+				}
+				
+				
+				//Player 1
+				if(data.toString().intern() == "P1: ROCK") {
+					plays++; //increase plays 
+					clientPlays.add(0,"P1: ROCK"); //add rock
+				}
+				if(data.toString().intern() == "P1: PAPER") {
+					plays++; //increase plays 
+					clientPlays.add(0,"P1: PAPER"); //add rock
+				}
+				if(data.toString().intern() == "P1: SCISSOR") {
+					plays++; //increase plays 
+					clientPlays.add(0,"P1: SCISSOR"); //add rock
+				}
+				if(data.toString().intern() == "P1: LIZARD") {
+					plays++; //increase plays 
+					clientPlays.add(0,"P1: LIZARD"); //add rock
+				}
+				if(data.toString().intern() == "P1: SPOCK") {
+					plays++; //increase plays 
+					clientPlays.add(0,"P1: SPOCK"); //add rock
+				}
+				
+				//Player 2
+				if(data.toString().intern() == "P2: ROCK") {
+					plays++; //increase plays 
+					clientPlays.add(1,"P2: ROCK"); //add rock
+				}
+				if(data.toString().intern() == "P2: PAPER") {
+					plays++; //increase plays 
+					clientPlays.add(1,"P2: PAPER"); //add rock
+				}
+				if(data.toString().intern() == "P2: SCISSOR") {
+					plays++; //increase plays 
+					clientPlays.add(1,"P2: SCISSOR"); //add rock
+				}
+				if(data.toString().intern() == "P2: LIZARD") {
+					plays++; //increase plays 
+					clientPlays.add(1,"P2: LIZARD"); //add rock
+				}
+				if(data.toString().intern() == "P2: SPOCK") {
+					plays++; //increase plays 
+					clientPlays.add(1,"P2: SPOCK"); //add rock
+				}
+				
+				System.out.println("Plays: "+plays);
+				if (plays == 2) {//send plays 
+					try {connection.send(clientPlays.get(0)); connection.send(clientPlays.get(1));} catch (Exception e) {e.printStackTrace();} //send aponent card
+					plays = 0;//reset plays
+					
+					//who won round?
+					int rwinner = roundWinner(clientPlays.get(0),clientPlays.get(1));
+					try { connection.send(""+rwinner);} catch (Exception e) {e.printStackTrace();} //winner
+					clientPlays.clear();//reset array
+					
+				}
+				
+			});
+		});
+	}//end of createServer()
+	
+	public Integer roundWinner(String P1, String P2) {
+		
+		if (P1 == "P1: ROCK" && (P2 == "P2: LIZARD" || P2 == "P2: SCISSOR") ) {//Rock beats lizard and scissors
+			return 1;//player 1 wins
+		}
+		if (P1 == "P1: PAPER" && (P2 == "P2: ROCK" || P2 == "P2: SPOCK") ) {//Paper beats Rock and Spock
+			return 1;//player 1 wins
+		}
+		if (P1 == "P1: SCISSOR" && (P2 == "P2: LIZARD" || P2 == "P2: PAPER") ) {//Scissors beats lizard and paper
+			return 1;//player 1 wins
+		}
+		if (P1 == "P1: LIZARD" && (P2 == "P2: PAPER" || P2 == "P2: SPOCK") ) {//Lizard beats paper and spock
+			return 1;//player 1 wins
+		}
+		if (P1 == "P1: SPOCK" && (P2 == "P2: ROCK" || P2 == "P2: SCISSOR") ) {//Pock beats rock and scissor
+			return 1;//player 1 wins
+		}
+		
+		//-------------------------------------------------------------------------------------------------------
+		
+		if (P2 == "P2: ROCK" && (P1 == "P1: LIZARD" || P1 == "P1: SCISSOR") ) {//Rock beats lizard and scissors
+			return 2;//player 2 wins
+		}
+		if (P2 == "P2: PAPER" && (P1 == "P1: ROCK" || P1 == "P1: SPOCK") ) {//Paper beats Rock and Spock
+			return 2;//player 2 wins
+		}
+		if (P2 == "P2: SCISSOR" && (P1 == "P1: LIZARD" || P1 == "P1: PAPER") ) {//Scissors beats lizard and paper
+			return 2;//player 2 wins
+		}
+		if (P2 == "P2: LIZARD" && (P1 == "P1: PAPER" || P1 == "P1: SPOCK") ) {//Lizard beats paper and spock
+			return 2;//player 2 wins
+		}
+		if (P2 == "P2: SPOCK" && (P1 == "P1: ROCK" || P1 == "P1: SCISSOR") ) {//Pock beats rock and scissor
+			return 2;//player 2 wins
+		}
+		
+		
+		return null;//something is wrong
+		
+	}
+	
+	public void winner() {
+		
+	}
+	
+	
+	
+}

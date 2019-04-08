@@ -1,0 +1,558 @@
+package p3_client;
+
+import java.io.IOException;
+import java.util.HashMap;
+
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
+import javafx.scene.text.Font;
+import javafx.stage.Stage;
+
+
+
+/*
+Jhon Nunez
+University of Illinois
+CS342 Software Design
+Project 3: Rock, Paper, Scissors, Lizard, Spock
+*/
+
+public class p3_client extends Application{
+
+	Stage myStage;
+	HashMap<String, Scene> sceneMap;
+	//intro
+	Scene intro; //intro scene
+	Button start,exit; //intro buttons
+	//game
+	Scene game; //game scene
+	Button play1,play2,play3,play4,play5,connect,quit,playagain; //game buttons
+	Image p1,p2;
+	ImageView player1,player2;
+	TextField address, port;//input from address and port
+	Image pc1,pc2,pc3,pc4,pc5;//loaded images from image package
+	Label gameLabel;//game label
+	Label player1Score; //player 1 score label
+	Label player2Score; //player 2 score label
+	
+	private networkConnection connection;
+	Integer playerID;//player ID
+	int p1Score = 0; //player 1 score
+	int p2Score = 0; //player 2 score
+	boolean p1Play = true; //play status
+	boolean p2Play = false; //play status
+	
+	
+	public static void main(String[] args) throws IOException  {
+		launch(args);
+
+	}
+	
+	@Override
+	public void start(Stage primaryStage) throws Exception {
+		myStage = primaryStage;//create primary stage
+		primaryStage.setTitle("Rock, Paper, Scissor, Lizard, Spock By: Jhon Nunez");
+		sceneMap = new HashMap<String, Scene>();// scenes 
+		
+		//INTRO SCENE---------------------------------------------------------------------------------
+		Label introTitle = new Label("Welcome to RPSLS!");
+		Label introText = new Label("Press Play to Start Game!");
+		introTitle.setFont(new Font("Arial",30) );
+		introText.setFont(new Font("Arial", 15) );
+		//intro image
+		BackgroundImage introBI= new BackgroundImage(new Image("images/RPSLS.png",400,400,false,true),
+		        BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,
+		          BackgroundSize.DEFAULT);
+		BorderPane pane = new BorderPane(); //create intro pane
+		pane.setPadding(new Insets(70)); //adds inner margins(padding)
+		start = new Button("Play"); //start button
+		exit = new Button("Exit");//exit button
+
+		//create boxes for items
+		VBox titleIntro = new VBox(10, introTitle,introText);		
+		VBox startIntro = new VBox(start);
+		VBox exitIntro = new VBox(exit);	
+		//set alignments 
+		titleIntro.setAlignment(Pos.BASELINE_CENTER);
+		startIntro.setAlignment(Pos.CENTER);
+		exitIntro.setAlignment(Pos.BASELINE_CENTER);
+		
+		pane.setTop(titleIntro);//set intro at the top 	
+		pane.setCenter(startIntro);//place start button at center
+		pane.setBottom(exit);//place exit button at bottom
+		pane.setBackground(new Background(introBI));//add background image
+	
+		intro = new Scene(pane, 500, 500);
+		primaryStage.setScene(intro);
+		primaryStage.show();
+		sceneMap.put("intro", intro);//add intro to scene map
+		
+		//GAME SCENE---------------------------------------------------------------------------------------
+		Label gameTitle = new Label("Welcome to RPSLS! Please select move!");
+		gameTitle.setFont(new Font("Arial",30) );		
+		//background game image
+		BackgroundImage gameBI= new BackgroundImage(new Image("images/background.png",1920,1080,false,true),      
+				BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,    
+				BackgroundSize.DEFAULT);
+		BorderPane gamePane = new BorderPane(); //create pane for card game
+		gamePane.setPadding(new Insets(50)); //add padding
+		gamePane.setBackground(new Background(gameBI));//set background image
+		
+		//address and port #
+		address = new TextField();
+		port = new TextField();
+		address.setPromptText("address");
+		port.setPromptText("Port");
+		address.setMaxWidth(100);
+		port.setMaxWidth(100);
+		
+		quit = new Button("Exit");
+		quit.setMaxWidth(100);
+		connect = new Button("Connect");
+		connect.setMaxWidth(100);
+		playagain = new Button("Play Again!");
+		playagain.setMaxWidth(100);
+		play1 = new Button();
+		play1.setShape(new Circle(1));
+		play2 = new Button();
+		play2.setShape(new Circle(1));
+		play3 = new Button();
+		play3.setShape(new Circle(1));
+		play4 = new Button();
+		play4.setShape(new Circle(1));
+		play5 = new Button();
+		play5.setShape(new Circle(1));
+		
+		gameLabel = new Label("Please connect to Host!");
+		gameLabel.setFont(new Font("Arial",30) );
+		
+		Label player1Title = new Label("Player 1 Score");
+		player1Score = new Label("0");
+		Label player2Title = new Label("Player 2 Score");
+		player2Score = new Label("0");
+		
+		
+		
+		p1 = new Image("images/playBack.png" );
+		player1 = new ImageView(p1);
+		player1.setFitWidth(200);
+		player1.setFitHeight(200);
+		player1.setPreserveRatio(true);
+		
+		p2 = new Image("images/playBack.png" );
+		player2 = new ImageView(p2);
+		player2.setFitWidth(200);
+		player2.setFitHeight(200);
+		player2.setPreserveRatio(true);
+		
+		Image vs = new Image("images/VS.png" );
+		ImageView gameVS = new ImageView(vs);
+		gameVS.setFitWidth(100);
+		gameVS.setFitHeight(100);
+		gameVS.setPreserveRatio(true);
+		
+		VBox p1Score = new VBox(player1Title,player1Score);
+		p1Score.setAlignment(Pos.CENTER);
+		VBox p2Score = new VBox(player2Title,player2Score);
+		p2Score.setAlignment(Pos.CENTER);
+		
+		VBox gameLeft = new VBox(address,port,connect,quit);
+		VBox gameRight = new VBox(playagain);
+		HBox gameCenter = new HBox(p1Score,player1,gameVS,player2,p2Score);
+		HBox gameBottom = new HBox(10, play1,play2,play3,play4,play5);
+		HBox gameText = new HBox(gameLabel);
+		gameText.setAlignment(Pos.CENTER);
+		
+		gameBottom.setAlignment(Pos.CENTER);
+		gameCenter.setAlignment(Pos.CENTER);
+		gamePane.setLeft(gameLeft);
+		gamePane.setRight(gameRight);
+		gamePane.setBottom(gameBottom);
+		gamePane.setCenter(gameCenter);
+		gamePane.setTop(gameText);
+		
+		game = new Scene(gamePane, 1100,600);
+		sceneMap.put("game", game);//add game to scene map
+		
+		playagain.setDisable(true); //disable play again
+		disablePlay();//disable playing buttons
+		
+		
+		//START GAME---------------------------------------------------------------------------------
+		start.setOnAction(new EventHandler<ActionEvent>() {
+			public void handle(ActionEvent event) {
+				myStage.setScene(sceneMap.get("game")); //open scene to start game
+				myStage.centerOnScreen();
+				gameImages();//set images
+				address.setText("127.0.0.1");
+				port.setText("7777");
+			}
+		});
+		
+		connect.setOnAction(new EventHandler<ActionEvent>() {
+			public void handle(ActionEvent event) {
+
+				String myAddress = address.getText(); 
+				int myPort = Integer.parseInt(port.getText());
+				
+				connection = createClient(myAddress, myPort);
+				try {
+					connection.startConnection();				
+					address.setDisable(true);
+					port.setDisable(true);
+					connect.setDisable(true);
+					gameLabel.setText("Waiting for Player 2...");
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+				//System.out.println("Address: "+connection.getIP()+ "  My Port: " +connection.getPort());
+				
+				
+				
+			}
+		});
+		
+		play1.setOnAction(new EventHandler<ActionEvent>() {
+			public void handle(ActionEvent event) {
+				try {
+					connection.send("P"+playerID+": "+"ROCK");
+					gameLabel.setText("Played Rock! Waiting for player 2");
+					disablePlay();//disable playing cards
+					player1.setImage(pc1);
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
+		play2.setOnAction(new EventHandler<ActionEvent>() {
+			public void handle(ActionEvent event) {
+				try {
+					connection.send("P"+playerID+": "+"PAPER");
+					gameLabel.setText("Played Paper! Waiting for player 2");
+					disablePlay();//disable playing cards
+					player1.setImage(pc2);
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
+		play3.setOnAction(new EventHandler<ActionEvent>() {
+			public void handle(ActionEvent event) {
+				try {
+					connection.send("P"+playerID+": "+"SCISSOR");
+					gameLabel.setText("Played Scissor! Waiting for player 2");
+					disablePlay();//disable playing cards
+					player1.setImage(pc3);
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
+		play4.setOnAction(new EventHandler<ActionEvent>() {
+			public void handle(ActionEvent event) {
+				try {
+					connection.send("P"+playerID+": "+"LIZARD");
+					gameLabel.setText("Played Lizard! Waiting for player 2");
+					disablePlay();//disable playing cards
+					player1.setImage(pc4);
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
+		play5.setOnAction(new EventHandler<ActionEvent>() {
+			public void handle(ActionEvent event) {
+				try {
+					connection.send("P"+playerID+": "+"SPOCK");
+					gameLabel.setText("Played Spock! Waiting for player 2");
+					disablePlay();//disable playing cards
+					player1.setImage(pc5);
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		//exit game
+		EventHandler<ActionEvent> exitButton = new EventHandler<ActionEvent>() {
+			public void handle(ActionEvent event) {
+				
+				primaryStage.close(); //exitGame
+			}
+		};
+		exit.setOnAction(exitButton);
+		quit.setOnAction(exitButton);
+		
+		playagain.setOnAction(new EventHandler<ActionEvent>() {
+			public void handle(ActionEvent event) {
+				try {	
+					if(playerID == 1) {
+						connection.send("PLAYAGAIN1");
+						gameLabel.setText("waiting for player 2...");
+						playagain.setDisable(true);//disable play again
+					}
+					if(playerID == 2) {
+						connection.send("PLAYAGAIN2");
+						gameLabel.setText("waiting for player 1...");
+						playagain.setDisable(true);//disable play again
+					}
+	
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
+		
+		
+
+	}
+	
+
+	private client createClient(String addressInput, int portInput) {
+		return new client(addressInput, portInput, data->{
+			Platform.runLater( ()-> {
+				
+				System.out.println(data.toString());
+				if(data.toString().intern() == "P1") {
+					playerID = 1;
+				}
+				if(data.toString().intern() == "P2" && playerID == null) {
+					playerID = 2;
+				}
+				if(data.toString().intern() == "TWO_PLAYERS") {
+					//gameLabel.setText("Select Play!");
+					//enablePlay();//enable playing buttons 
+					
+					if (playerID == 1) {
+						gameLabel.setText("Select Play!");
+						enablePlay();//enable playing buttons 
+					}
+					else if (playerID == 2) {
+						gameLabel.setText("Player 1 starts..");
+					}
+					
+				}
+				if(data.toString().intern() == "SERVER_STOP") {
+					address.setDisable(false); //enable buttons
+					port.setDisable(false);
+					connect.setDisable(false);
+				}
+				if(data.toString().intern() == "P1GO" && playerID == 1) {
+					enablePlay();
+				}
+				if(data.toString().intern() == "P2GO" && playerID == 2) {
+					enablePlay();
+				}
+				if(data.toString().intern() == "P1: ROCK" && playerID == 2) {
+					gameLabel.setText("Opponent Played Rock!");
+					player2.setImage(pc1);
+				}
+				if(data.toString().intern() == "P1: PAPER" && playerID == 2) {
+					gameLabel.setText("Opponent Played Paper!");
+					player2.setImage(pc2);
+				}
+				if(data.toString().intern() == "P1: SCISSOR" && playerID == 2) {
+					gameLabel.setText("Opponent Played Scissor!");
+					player2.setImage(pc3);
+				}
+				if(data.toString().intern() == "P1: LIZARD" && playerID == 2) {
+					gameLabel.setText("Opponent Played Lizard!");
+					player2.setImage(pc4);
+				}
+				if(data.toString().intern() == "P1: SPOCK" && playerID == 2) {
+					gameLabel.setText("Opponent Played Spock!");
+					player2.setImage(pc5);
+				}
+				
+				//P2
+				if(data.toString().intern() == "P2: ROCK" && playerID == 1) {
+					gameLabel.setText("Opponent Played Rock!");
+					player2.setImage(pc1);
+				}
+				if(data.toString().intern() == "P2: PAPER" && playerID == 1) {
+					gameLabel.setText("Opponent Played Paper!");
+					player2.setImage(pc2);
+				}
+				if(data.toString().intern() == "P2: SCISSOR" && playerID == 1) {
+					gameLabel.setText("Opponent Played Scissor!");
+					player2.setImage(pc3);
+				}
+				if(data.toString().intern() == "P2: LIZARD" && playerID == 1) {
+					gameLabel.setText("Opponent Played Lizard!");
+					player2.setImage(pc4);
+				}
+				if(data.toString().intern() == "P2: SPOCK" && playerID == 1) {
+					gameLabel.setText("Opponent Played Spock!");
+					player2.setImage(pc5);
+				}
+				
+				//POINTS
+				if(data.toString().intern() == "1" && playerID == 1) {//player 1 gets point
+					p1Score++;
+					gameLabel.setText("You win round!");
+					player1Score.setText(""+p1Score);
+					enablePlay();
+				}
+				if(data.toString().intern() == "2" && playerID == 1) {//player 2 gets point
+					p2Score++;
+					gameLabel.setText("Opponent wins round!");
+					player2Score.setText(""+p2Score);
+					enablePlay();
+				}
+				
+				
+				if(data.toString().intern() == "1" && playerID == 2) {//player 1 gets point
+					p1Score++;
+					gameLabel.setText("Opponent wins round!");
+					player2Score.setText(""+p1Score);
+					enablePlay();
+				}
+				if(data.toString().intern() == "2" && playerID == 2) {//player 2 gets point
+					p2Score++;
+					gameLabel.setText("You win round!");
+					player1Score.setText(""+p2Score);
+					enablePlay();
+				}
+				
+				if(data.toString().intern() == "0") {//TIE
+					gameLabel.setText("TIE!");
+					enablePlay();
+				}
+				
+				//winner
+				if(data.toString().intern() == "WINNER1" && playerID == 1) {//Player 1 wins
+					gameLabel.setText("YOU WIN!");
+					disablePlay();
+					playagain.setDisable(false);//enable play again
+				}
+				if(data.toString().intern() == "WINNER2" && playerID == 1) {//Player 2 wins
+					gameLabel.setText("YOU LOOSE!");
+					disablePlay();
+					playagain.setDisable(false);//enable play again
+				}
+				
+				if(data.toString().intern() == "WINNER1" && playerID == 2) {//Player 2 wins
+					gameLabel.setText("YOU LOOSE!");
+					disablePlay();
+					playagain.setDisable(false);//enable play again
+				}
+				if(data.toString().intern() == "WINNER2" && playerID == 2) {//Player 1 wins
+					gameLabel.setText("YOU WIN!");
+					disablePlay();
+					playagain.setDisable(false);//enable play again
+				}
+				
+				if(data.toString().intern() == "REPLAY") {//Replay
+				
+					//reset game
+					enablePlay();
+					p1Score = 0;
+					p2Score = 0;
+					player1Score.setText("0");
+					player2Score.setText("0");
+					gameLabel.setText("Select Play!");
+					
+					player1.setImage(p1);
+					player2.setImage(p1);
+
+				}
+				
+				
+				
+			});
+		});
+	}
+
+	
+	public void gameImages() { //setup game images
+		
+		pc1 = new Image("images/1.png" );
+		ImageView c1 = new ImageView(pc1);
+		c1.setFitWidth(100);
+		c1.setFitHeight(100);
+		c1.setPreserveRatio(true);
+		play1.setGraphic(c1);
+		
+		pc2 = new Image("images/2.png" );
+		ImageView c2 = new ImageView(pc2);
+		c2.setFitWidth(100);
+		c2.setFitHeight(100);
+		c2.setPreserveRatio(true);
+		play2.setGraphic(c2);
+		
+		pc3 = new Image("images/3.png" );
+		ImageView c3 = new ImageView(pc3);
+		c3.setFitWidth(100);
+		c3.setFitHeight(100);
+		c3.setPreserveRatio(true);
+		play3.setGraphic(c3);
+		
+		pc4 = new Image("images/4.png" );
+		ImageView c4 = new ImageView(pc4);
+		c4.setFitWidth(100);
+		c4.setFitHeight(100);
+		c4.setPreserveRatio(true);
+		play4.setGraphic(c4);
+		
+		pc5 = new Image("images/5.png" );
+		ImageView c5 = new ImageView(pc5);
+		c5.setFitWidth(100);
+		c5.setFitHeight(100);
+		c5.setPreserveRatio(true);
+		play5.setGraphic(c5);
+		
+	}
+	
+	public void enablePlay() {
+		play1.setDisable(false);
+		play2.setDisable(false);
+		play3.setDisable(false);
+		play4.setDisable(false);
+		play5.setDisable(false);
+	}
+	public void disablePlay() {
+		play1.setDisable(true);
+		play2.setDisable(true);
+		play3.setDisable(true);
+		play4.setDisable(true);
+		play5.setDisable(true);
+	}
+	
+	public void resetGame() {
+		
+		playagain.setDisable(true); //disable play again
+	}
+	
+	
+	
+}

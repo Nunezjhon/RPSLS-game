@@ -1,0 +1,40 @@
+package p3_server;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+class serverTest {
+
+	p3_server p3;
+	
+	@BeforeEach
+	public void init() {//initialize	
+		p3 = new p3_server();
+	}
+	void test1() {
+		//number of player test
+		p3.numPlayers = 2;
+		assert(p3.numPlayers == 2);
+	}
+	
+	@Test
+	void test2() {
+		
+	}
+
+	@Test
+	void test3() {
+		fail("Not yet implemented");
+	}
+	@Test
+	void test4() {
+		fail("Not yet implemented");
+	}
+	@Test
+	void test5() {
+		fail("Not yet implemented");
+	}
+
+}

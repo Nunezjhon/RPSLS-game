@@ -1,0 +1,18 @@
+package p3_server;
+import java.io.Serializable;
+import java.util.function.Consumer;
+
+public class server extends networkConnection {
+
+	private int port;
+	
+	public server(int port, Consumer<Serializable> callback) {
+		//super(callback); 
+		this.port = port; //declare port
+	}
+	
+	
+	
+	
+	
+}

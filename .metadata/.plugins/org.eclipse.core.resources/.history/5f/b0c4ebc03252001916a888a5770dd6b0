@@ -1,0 +1,25 @@
+package p3_client;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+class p3_clientTest {
+
+	
+	@BeforeEach
+	public void init() {//initialize	
+		
+		
+	}
+	void test() {
+		
+	}
+	
+	@Test
+	void test1() {
+		fail("Not yet implemented");
+	}
+
+}

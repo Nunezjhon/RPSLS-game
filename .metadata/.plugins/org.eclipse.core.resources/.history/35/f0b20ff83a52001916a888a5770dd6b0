@@ -1,0 +1,48 @@
+package p3_client;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import javafx.scene.control.Label;
+
+
+class p3_clientTest{
+
+	
+	@BeforeEach
+	public void init() {//initialize	
+		
+		p3_client p3 = new p3_client();
+		
+		
+	}
+	void test1() throws Exception{
+		
+		p3_client p3 = new p3_client();
+		p3.p1Score = 3;
+		
+		
+		assert(3 == p3.p1Score);
+		
+	}
+	
+	@Test
+	void test2() {
+		fail("Not yet implemented");
+	}
+
+	@Test
+	void test3() {
+		fail("Not yet implemented");
+	}
+	@Test
+	void test4() {
+		fail("Not yet implemented");
+	}
+	@Test
+	void test5() {
+		fail("Not yet implemented");
+	}
+}

@@ -1,0 +1,7 @@
+package p3_client;
+
+public class client extends networkConnection{
+
+	
+	
+}
