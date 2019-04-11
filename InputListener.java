@@ -14,8 +14,6 @@
 
 package p3_server;
 
-import javafx.application.Platform;
-
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
@@ -27,7 +25,7 @@ public class InputListener extends Thread {
     public static final String WEL_SIG = "welcome";           // client has connected to server
     public static final String WAIT_SIG = "wait";             // client is the first to connect to server
     public static final String TURN_SIG = "your move";        // client's turn
-    public static final String CHECK_SIG = "client played";   // client made a play; server needs to read/process it
+    public static final String PLAY_SIG = "client played";    // client made a play; server needs to read/process it
     public static final String WIN_SIG = "win";               // client won round/game
     public static final String LOSE_SIG = "lose";             // client lost round/game
     public static final String TIE_SIG = "tie";               // both clients tied
@@ -41,6 +39,16 @@ public class InputListener extends Thread {
     private PrintWriter out;        // writes output
     private Socket client;          // client this listener is responsible for
     private volatile String last;   // last signal received from client
+
+    enum Play { // enum values to be used as signals for plays
+
+        ROCK,
+        PAPER,
+        SCISSORS,
+        LIZARD,
+        SPOCK
+
+    }
 
     public InputListener(Socket client) { // constructor initializes in and out
 
